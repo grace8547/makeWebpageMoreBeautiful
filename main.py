@@ -16,7 +16,3 @@ soup = bs.BeautifulSoup(sauce, 'lxml')
 for result in soup.findAll('a', {'class': 'smaller_line_height'}): 
   ScrapCatInfo(result)                                                 
 
-
-#comment
-# comment2
-# comment3s
