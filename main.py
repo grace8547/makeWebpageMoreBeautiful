@@ -17,3 +17,4 @@ for result in soup.findAll('a', {'class': 'smaller_line_height'}):
   ScrapCatInfo(result)                                                 
 
 
+#comment
