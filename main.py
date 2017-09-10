@@ -27,7 +27,8 @@ soup = bs.BeautifulSoup(source, 'lxml')
 numCats = 5
 results = soup.findAll('span', {'class':'featured-thumbnail'})
 i=0
-rescueGroup = []
+rescueGroupKey = []
+rescueGroupDic = {}
 for result in results:
   ScrapCatInfo(result.find('a', {'class': 'smaller_line_height'}))
   ScrapShelterInfo(result.find('a', {'class': 'smaller_line_height'}), rescueGroup)
