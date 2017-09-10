@@ -14,16 +14,27 @@ def ScrapShelterInfo(result, rescueGroupDic, lock):
   single_shelter_helper = urllib2.urlopen(result['href']).read()
   single_shelter = bs.BeautifulSoup(single_shelter_helper, 'lxml')
   shelter = single_shelter.find('div', {'class': 'body contact_sidebar hidden-sm hidden-md hidden-lg'})
-
+  firstFound = False
+  rescueInfo = {}
+  lastShelter = {}
   if shelter:
     for li in shelter.find_all('li'):
       if li.find('b', text=re.compile('Rescue Group')) or li.find('b', text=re.compile('Shelter')):
         lock.acquire()
         if li.find('a').text not in rescueGroupDic.keys():
-          rescueGroupDic[li.find('a').text]=1
+          rescueGroupDic[li.find('a').text]={}
+          rescueGroupDic[li.find('a').text]['count']=1
+          firstFound = True
+          lastShelter = li.find('a').text
         else:
-          rescueGroupDic[li.find('a').text]+=1
+          rescueGroupDic[li.find('a').text]['count']+=1
         lock.release()
+
+      if firstFound:
+        if li.find('b', text=re.compile('Contact')):
+          rescueGroupDic[lastShelter]['Contact']=li.contents[1]
+        if li.find('b', text=re.compile('E-mail')):
+          rescueGroupDic[lastShelter]['E-mail']=li.find('a').text
 
 
 source = urllib2.urlopen("http://www.adoptapet.com/cat-adoption/search/50/miles/94403?color=Calico+or+Dilute+Calico&color_id=50").read()
