@@ -14,10 +14,10 @@ def ScrapShelterInfo(result, rescueGroup):
   single_shelter = bs.BeautifulSoup(single_shelter_helper, 'lxml')
   shelter = single_shelter.find('div', {'class': 'body contact_sidebar hidden-sm hidden-md hidden-lg'})
 
-  if shelter is not None:
+  if shelter:
     for li in shelter.find_all('li'):
-      if li.find('b', text=re.compile('Rescue Group')):
-        if not li.find('a').text in rescueGroup:
+      if li.find('b', text=re.compile('Rescue Group')) or li.find('b', text=re.compile('Shelter')):
+        if li.find('a').text not in rescueGroup:
           rescueGroup.append(li.find('a').text)
   print(rescueGroup)
 
