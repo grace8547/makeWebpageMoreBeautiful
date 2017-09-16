@@ -24,35 +24,44 @@ class FindCatShelterInfo:
     # print(story[1].text)
     # print('')
 
+  def FindShelterName(self, li, newShelterFound, shelterName):
+    if li.find('b', text=re.compile('Rescue Group')) or li.find('b', text=re.compile('Shelter')):
+      if li.find('a').text not in self.rescueGroupDic.keys():
+        self.rescueGroupDic[li.find('a').text] = {}          
+        self.rescueGroupDic[li.find('a').text]['count']=1  
+        shelterName=li.find('a').text
+        newShelterFound=True    
+      else:
+        # shelter already in doc, update count and skip scrape shelter infomation
+        self.rescueGroupDic[li.find('a').text]['count']+=1   
+
+  def FindShelterInfoByName(self, li, shelterName, info):
+    if li.find('b', text=re.compile(info)):
+      if info is 'E-mail' or 'Phone' or 'Website':
+        self.rescueGroupDic[shelterName][info]=li.find('a').text
+      elif info is 'Contact':
+        self.rescueGroupDic[shelterName][info]=li.contents[1]
+      elif info is 'Address':
+        self.rescueGroupDic[shelterName][info]=li.contents[2]
+
   def ScrapeShelterInfo(self, result):
     single_shelter_helper = urllib2.urlopen(result['href']).read()
     single_shelter = bs.BeautifulSoup(single_shelter_helper, 'lxml')
     shelter = single_shelter.find('div', {'class': 'body contact_sidebar hidden-sm hidden-md hidden-lg'})
-    flag=False
-    temp={}
+    newShelterFound=False
+    shelterName={}
     if shelter:
       for li in shelter.find_all('li'):
-        if flag is True:
-          if li.find('b', text=re.compile('E-mail')):
-            self.rescueGroupDic[temp]['E-mail']=li.find('a').text
-          if li.find('b', text=re.compile('Contact')):
-            self.rescueGroupDic[temp]['Contact']=li.contents[1]
-          if li.find('b', text=re.compile('Phone')):
-            self.rescueGroupDic[temp]['Phone']=li.find('a').text
-          if li.find('b', text=re.compile('Fax')):
-            self.rescueGroupDic[temp]['Fax']=li.contents[1]
-          if li.find('b', text=re.compile('Website')):
-            self.rescueGroupDic[temp]['Website']=li.find('a').text    
-          if li.find('b', text=re.compile('Address')):
-            self.rescueGroupDic[temp]['Address']=li.contents[2]                                          
-        if li.find('b', text=re.compile('Rescue Group')) or li.find('b', text=re.compile('Shelter')):
-          if li.find('a').text not in self.rescueGroupDic.keys():
-            self.rescueGroupDic[li.find('a').text] = {}          
-            self.rescueGroupDic[li.find('a').text]['count']=1  
-            temp=li.find('a').text
-            flag=True    
-          else:
-            self.rescueGroupDic[li.find('a').text]['count']+=1
+        if newShelterFound is True:
+          self.FindShelterInfoByName(li, shelterName, 'E-mail')
+          self.FindShelterInfoByName(li, shelterName, 'Contact')
+          self.FindShelterInfoByName(li, shelterName, 'Phone')
+          self.FindShelterInfoByName(li, shelterName, 'Fax')
+          self.FindShelterInfoByName(li, shelterName, 'Website')
+          self.FindShelterInfoByName(li, shelterName, 'Address')
+        else: 
+          self.FindShelterName(li, newShelterFound, shelterName)                                          
+
 
   def ScrapeCatInfoPage(self):
     i=0
