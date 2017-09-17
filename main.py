@@ -38,20 +38,21 @@ class FindCatShelterInfo:
       # print(story[1].text)
       # print('')
 
-  def FindShelterName(self, li, newShelterFound, shelterName):
+  def FindShelterName(self, li):
+    shelterName = {}
     if li.find('b', text=re.compile('Rescue Group')) or li.find('b', text=re.compile('Shelter')):
       if li.find('a').text not in self.rescueGroupDic.keys():
         self.rescueGroupDic[li.find('a').text] = {}          
         self.rescueGroupDic[li.find('a').text]['count']=1  
         shelterName=li.find('a').text
-        newShelterFound=True 
       else:
         # shelter already in doc, update count and skip scrape shelter infomation
-        self.rescueGroupDic[li.find('a').text]['count']+=1  
+        self.rescueGroupDic[li.find('a').text]['count']+=1
+    return shelterName 
 
   def FindShelterInfoByName(self, li, shelterName, info):
     if li.find('b', text=re.compile(info)):
-      if info is 'E-mail' or 'Phone' or 'Website':
+      if info is 'E-mail' or info is 'Phone' or info is 'Website':
         self.rescueGroupDic[shelterName][info]=li.find('a').text
       elif info is 'Contact':
         self.rescueGroupDic[shelterName][info]=li.contents[1]
@@ -60,15 +61,17 @@ class FindCatShelterInfo:
 
   def ScrapeShelterInfo(self, result):
     if result['href']:
-      single_shelter_helper = urllib2.urlopen(result['href']).read()
+      try:
+        single_shelter_helper = urllib2.urlopen(result['href']).read()
+      except:
+        print('cannot open ' + result['href'])
       single_shelter = bs.BeautifulSoup(single_shelter_helper, 'lxml')
       shelter = single_shelter.find('div', {'class': 'body contact_sidebar hidden-sm hidden-md hidden-lg'})
-      newShelterFound=False
       shelterName={}
       if shelter:
         for li in shelter.find_all('li'):
           self.lock.acquire()
-          if newShelterFound is True:
+          if shelterName:
             self.FindShelterInfoByName(li, shelterName, 'E-mail')
             self.FindShelterInfoByName(li, shelterName, 'Contact')
             self.FindShelterInfoByName(li, shelterName, 'Phone')
@@ -76,7 +79,7 @@ class FindCatShelterInfo:
             self.FindShelterInfoByName(li, shelterName, 'Website')
             self.FindShelterInfoByName(li, shelterName, 'Address')
           else: 
-            self.FindShelterName(li, newShelterFound, shelterName)  
+            shelterName = self.FindShelterName(li)  
           self.lock.release()                                        
 
 
